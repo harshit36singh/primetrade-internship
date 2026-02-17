@@ -408,57 +408,121 @@ curl -X GET http://localhost:8000/api/v1/users/ \
 - CloudFront/CloudFlare for frontend assets
 - S3 for file storage
 - Separate static and dynamic content
+## 🐳 Docker Deployment (Production-Ready)
 
-## 🐳 Docker Deployment (Optional)
+This application is **fully containerized and deployed using Docker Compose**, including the backend, frontend, PostgreSQL database, and Redis cache.
 
-Create `Dockerfile` in backend:
-```dockerfile
-FROM python:3.11-slim
+---
 
-WORKDIR /app
+### 🧱 Services Overview
+- **FastAPI Backend** – REST API with JWT authentication
+- **React Frontend** – Vite-powered UI
+- **PostgreSQL** – Primary relational database
+- **Redis** – Caching / background services
+- **Docker Volumes & Network** – Persistent storage and service isolation
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+---
 
-COPY . .
+### 📦 Docker Compose Configuration
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-Create `docker-compose.yml`:
 ```yaml
 version: '3.8'
 
 services:
+  # PostgreSQL Database
   db:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: task_db
     environment:
+      POSTGRES_USER: taskuser
+      POSTGRES_PASSWORD: taskpass123
       POSTGRES_DB: taskdb
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskuser -d taskdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - task-network
 
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: task_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - task-network
+
+  # FastAPI Backend
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: task_backend
+    environment:
+      DATABASE_URL: postgresql://taskuser:taskpass123@db:5432/taskdb
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: your-production-secret-key-change-this
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
     ports:
       - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql://user:password@db:5432/taskdb
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - task-network
 
+  # React Frontend
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: task_frontend
     ports:
       - "3000:3000"
     depends_on:
       - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    networks:
+      - task-network
 
 volumes:
   postgres_data:
+  redis_data:
+
+networks:
+  task-network:
+    driver: bridge
+
+#Run with Docker
+docker-compose up --build
+
+#Detached mode:
+docker-compose up -d --build
+
+#Service URL
+Frontend	http://localhost:3000
+Backend API	http://localhost:8000
+Swagger Docs	http://localhost:8000/docs
+PostgreSQL	localhost:5432
+Redis	localhost:6379
+
 ```
 
 ## 📝 Testing
