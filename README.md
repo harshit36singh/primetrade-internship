@@ -1,0 +1,505 @@
+# Task Management API - Full Stack Application
+
+A production-ready REST API built with FastAPI featuring JWT authentication, role-based access control (RBAC), and a modern React frontend.
+
+## 🚀 Features
+
+### Backend (FastAPI)
+- ✅ **User Authentication**: Secure registration and login with JWT tokens
+- ✅ **Role-Based Access Control**: User and Admin roles with different permissions
+- ✅ **Task Management**: Complete CRUD operations for tasks
+- ✅ **API Versioning**: Structured as `/api/v1/` for future scalability
+- ✅ **Input Validation**: Pydantic schemas for request/response validation
+- ✅ **Error Handling**: Comprehensive error handling middleware
+- ✅ **Logging**: Request/response logging with processing time tracking
+- ✅ **Password Security**: bcrypt hashing with strong password requirements
+- ✅ **Database**: PostgreSQL with SQLAlchemy ORM
+- ✅ **Auto Documentation**: Interactive Swagger UI and ReDoc
+
+### Frontend (React + Vite)
+- ✅ **Modern UI**: Clean, responsive design with gradient themes
+- ✅ **Authentication**: Login/Register pages with form validation
+- ✅ **Protected Routes**: JWT-based route protection
+- ✅ **Task Dashboard**: View, create, edit, delete tasks
+- ✅ **Real-time Updates**: Instant UI updates after operations
+- ✅ **Task Filtering**: Filter by status (All, To Do, In Progress, Completed)
+- ✅ **Priority Management**: Low, Medium, High priority levels
+- ✅ **Due Date Tracking**: Set and display task deadlines
+- ✅ **Statistics**: Visual task statistics dashboard
+
+## 📋 Tech Stack
+
+### Backend
+- **FastAPI** - Modern, fast web framework
+- **SQLAlchemy** - SQL toolkit and ORM
+- **PostgreSQL** - Production database
+- **Pydantic** - Data validation
+- **python-jose** - JWT token handling
+- **passlib[bcrypt]** - Password hashing
+- **Uvicorn** - ASGI server
+
+### Frontend
+- **React 18** - UI library
+- **Vite** - Build tool and dev server
+- **React Router** - Client-side routing
+- **Axios** - HTTP client
+- **CSS3** - Modern styling
+
+## 🛠️ Installation & Setup
+
+### Prerequisites
+- Python 3.8+
+- Node.js 16+
+- PostgreSQL 12+
+
+### Backend Setup
+
+1. **Navigate to backend directory**
+```bash
+cd backend
+```
+
+2. **Create virtual environment**
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. **Install dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+4. **Configure environment**
+```bash
+cp .env.example .env
+```
+
+Edit `.env` file with your configuration:
+```env
+DATABASE_URL=postgresql://user:password@localhost:5432/taskdb
+SECRET_KEY=your-secret-key-here
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+ALLOWED_ORIGINS=http://localhost:3000
+```
+
+5. **Create PostgreSQL database**
+```bash
+# Using psql
+psql -U postgres
+CREATE DATABASE taskdb;
+\q
+```
+
+6. **Run the application**
+```bash
+uvicorn app.main:app --reload
+```
+
+The API will be available at:
+- API: http://localhost:8000
+- Swagger Docs: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
+
+### Frontend Setup
+
+1. **Navigate to frontend directory**
+```bash
+cd frontend
+```
+
+2. **Install dependencies**
+```bash
+npm install
+```
+
+3. **Start development server**
+```bash
+npm run dev
+```
+
+The frontend will be available at: http://localhost:3000
+
+## 📚 API Documentation
+
+### Authentication Endpoints
+
+#### Register User
+```http
+POST /api/v1/auth/register
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "username": "johndoe",
+  "password": "SecurePass123",
+  "full_name": "John Doe"
+}
+```
+
+#### Login
+```http
+POST /api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "johndoe",
+  "password": "SecurePass123"
+}
+
+Response:
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer"
+}
+```
+
+#### Register Admin (Testing Only)
+```http
+POST /api/v1/auth/register-admin
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "username": "admin",
+  "password": "AdminPass123",
+  "full_name": "Admin User"
+}
+```
+
+### User Endpoints
+
+#### Get Current User
+```http
+GET /api/v1/users/me
+Authorization: Bearer <token>
+```
+
+#### Update Profile
+```http
+PUT /api/v1/users/me
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "full_name": "John Updated Doe",
+  "email": "newemail@example.com"
+}
+```
+
+#### Get All Users (Admin Only)
+```http
+GET /api/v1/users/?skip=0&limit=100
+Authorization: Bearer <admin-token>
+```
+
+### Task Endpoints
+
+#### Create Task
+```http
+POST /api/v1/tasks/
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Complete project documentation",
+  "description": "Write comprehensive README and API docs",
+  "status": "todo",
+  "priority": "high",
+  "due_date": "2024-12-31T23:59:59"
+}
+```
+
+#### Get Tasks
+```http
+GET /api/v1/tasks/?skip=0&limit=10&status=todo
+Authorization: Bearer <token>
+```
+
+Query Parameters:
+- `skip`: Number of records to skip (pagination)
+- `limit`: Maximum records to return (1-100)
+- `status`: Filter by status (todo, in_progress, completed)
+
+#### Get Single Task
+```http
+GET /api/v1/tasks/{task_id}
+Authorization: Bearer <token>
+```
+
+#### Update Task
+```http
+PUT /api/v1/tasks/{task_id}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "title": "Updated title",
+  "status": "in_progress",
+  "priority": "medium"
+}
+```
+
+#### Delete Task
+```http
+DELETE /api/v1/tasks/{task_id}
+Authorization: Bearer <token>
+```
+
+## 🔒 Security Features
+
+### Password Requirements
+- Minimum 8 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one digit
+
+### JWT Authentication
+- Tokens expire after 30 minutes (configurable)
+- Secure token generation using HS256 algorithm
+- Token validation on every protected endpoint
+
+### Role-Based Access Control
+- **User Role**: Can manage their own tasks
+- **Admin Role**: Can manage all users and all tasks
+
+### Input Sanitization
+- All inputs validated using Pydantic schemas
+- SQL injection prevention via SQLAlchemy ORM
+- XSS protection through proper input/output handling
+
+## 📊 Database Schema
+
+### Users Table
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR UNIQUE NOT NULL,
+    username VARCHAR UNIQUE NOT NULL,
+    hashed_password VARCHAR NOT NULL,
+    full_name VARCHAR,
+    role VARCHAR NOT NULL DEFAULT 'user',
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### Tasks Table
+```sql
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR NOT NULL,
+    description TEXT,
+    status VARCHAR NOT NULL DEFAULT 'todo',
+    priority VARCHAR NOT NULL DEFAULT 'medium',
+    due_date TIMESTAMP,
+    is_completed BOOLEAN DEFAULT FALSE,
+    owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+## 🎯 Usage Guide
+
+### Testing with Admin Account
+
+1. **Create admin account**:
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/register-admin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@test.com",
+    "username": "admin",
+    "password": "Admin123",
+    "full_name": "System Admin"
+  }'
+```
+
+2. **Login to get token**:
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "Admin123"
+  }'
+```
+
+3. **Use token for authenticated requests**:
+```bash
+curl -X GET http://localhost:8000/api/v1/users/ \
+  -H "Authorization: Bearer <your-token>"
+```
+
+### Frontend Usage
+
+1. **Register/Login**: Navigate to http://localhost:3000
+2. **Dashboard**: View task statistics and your tasks
+3. **Create Task**: Click "+ New Task" button
+4. **Manage Tasks**: Edit, delete, or change status of tasks
+5. **Filter Tasks**: Use dropdown to filter by status
+
+## 🚀 Scalability Considerations
+
+### Current Architecture
+- Modular code structure for easy feature addition
+- API versioning (`/api/v1/`) for backwards compatibility
+- Separation of concerns (CRUD, schemas, models, routes)
+- Middleware-based logging and error handling
+
+### Future Scaling Options
+
+#### 1. **Microservices Architecture**
+- Split into separate services: Auth Service, Task Service, User Service
+- Use API Gateway for routing
+- Inter-service communication via gRPC or REST
+
+#### 2. **Caching Layer**
+- Implement Redis for:
+  - Session management
+  - Frequently accessed data caching
+  - Rate limiting
+- Cache invalidation strategies
+
+#### 3. **Database Optimization**
+- Read replicas for scaling reads
+- Database connection pooling (already implemented)
+- Query optimization and indexing
+- Consider sharding for very large datasets
+
+#### 4. **Load Balancing**
+- Deploy multiple API instances
+- Use NGINX or AWS ALB for load distribution
+- Session persistence via Redis
+
+#### 5. **Message Queue**
+- Implement Celery + Redis/RabbitMQ for:
+  - Async task processing
+  - Email notifications
+  - Scheduled jobs
+
+#### 6. **Monitoring & Observability**
+- Prometheus for metrics
+- Grafana for visualization
+- ELK stack for log aggregation
+- Sentry for error tracking
+
+#### 7. **Containerization**
+- Docker containers for consistent deployment
+- Kubernetes for orchestration
+- Horizontal pod autoscaling
+
+#### 8. **CDN & Static Assets**
+- CloudFront/CloudFlare for frontend assets
+- S3 for file storage
+- Separate static and dynamic content
+
+## 🐳 Docker Deployment (Optional)
+
+Create `Dockerfile` in backend:
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+Create `docker-compose.yml`:
+```yaml
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: taskdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/taskdb
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+```
+
+## 📝 Testing
+
+### Manual Testing Checklist
+
+**Authentication:**
+- [ ] User registration with valid data
+- [ ] Registration with duplicate email/username fails
+- [ ] Login with correct credentials
+- [ ] Login with incorrect credentials fails
+- [ ] Password validation (uppercase, lowercase, digit)
+
+**Authorization:**
+- [ ] Regular user can create tasks
+- [ ] Regular user can only see their tasks
+- [ ] Regular user cannot access other users' tasks
+- [ ] Admin can see all tasks
+- [ ] Admin can manage all users
+
+**Task Management:**
+- [ ] Create task with all fields
+- [ ] Create task with minimal fields
+- [ ] Update task status
+- [ ] Update task priority
+- [ ] Delete task
+- [ ] Filter tasks by status
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is created for educational purposes as part of a backend developer internship assignment.
+
+## 👨‍💻 Author
+
+**Your Name**
+- Email: your.email@example.com
+- GitHub: [@yourusername](https://github.com/yourusername)
+- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
+
+## 🙏 Acknowledgments
+
+- FastAPI documentation
+- React documentation
+- SQLAlchemy documentation
+- The amazing open-source community
+
+---
+
+**Note**: This is a demonstration project for a backend developer internship. Some features (like open admin registration) are for testing purposes only and should be removed in production.
